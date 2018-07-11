@@ -21,6 +21,8 @@ object App {
       .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
       .getOrCreate()
 
+    val sc = spark.sparkContext
+
     import spark.implicits._
 
     println("======================================")
@@ -29,7 +31,7 @@ object App {
 
     //We first set the region on the map in which we want to perform map matching
 
-    val osmBox = BoxLimits(40.65, 40.64, 22.94, 22.93)
+    val osmBox = BoxLimits(40.647, 40.643, 22.937, 22.933)
 
     val myGrid = new Grid(osmBox,150,100)
 
@@ -39,13 +41,13 @@ object App {
 
     //We load and index the GPS data
 
-    val gpsData = loadGPSPointsSpark(spark, "/vagrant/input_gps_08122017.csv")
+    val gpsData = loadGPSPointsSpark(sc, "/home/pablo/DE/DataSets/testDataSets/input_gps_08122017.csv")
 
     val gpsDataIndexed = filterIndexGPSPointsSpark(gpsData, myGrid)
 
     //We load and index and group the Ways data
 
-    val waysData = loadMapSpark(spark, "/vagrant/mapcsv.csv")
+    val waysData = loadMapSpark(sc, "/home/pablo/DE/DataSets/testDataSets/mapcsv.csv")
 
     println("number of ways " + waysData.count())
 
@@ -57,7 +59,7 @@ object App {
 
     val cells = waysDataIndexed.take(10).toList
 
-    val pw1 = new PrintWriter("/vagrant/cellWaysRDD.json")
+    val pw1 = new PrintWriter("/home/pablo/DE/GeoJSON/cellWaysRDD.json")
 
     cellsToJSON(pw1,cells,myGrid)
 
@@ -71,9 +73,9 @@ object App {
 
     mergedData.persist()
 
-    val sample = mergedData.take(10).toList
+    val sample = mergedData.collect.toList
 
-    val pw2 = new PrintWriter("/vagrant/mergedDataRDD.json")
+    val pw2 = new PrintWriter("/home/pablo/DE/GeoJSON/mergedDataRDD.json")
 
     indexedDataToJSON(pw2,sample,myGrid)
 
@@ -91,15 +93,15 @@ object App {
 
     matchedData.map{case (way, p, new_p, _) => (way.osmID, p.id, p.lat, p.lon, p.orientation, new_p.lat, new_p.lon)}
       .toDF("wayID","pointID","latitude","longitude","orientation","matched latitude","matched longitude")
-      .coalesce(1).write.csv("/vagrant/results")
+      .coalesce(1).write.csv("/home/pablo/DE/DataSets/testDataSets/results")
 
     matchedData.unpersist()
 
     //We can also write some results in geojson format for visualization purposes
 
-    val someResults = matchedData.take(20).toList
+    val someResults = matchedData.collect.toList
 
-    val pw3 = new PrintWriter("/vagrant/MMResultsRDD.json")
+    val pw3 = new PrintWriter("/home/pablo/DE/GeoJSON/MMResultsRDD.json")
 
     val jsonResults = someResults
       .map(a => (a._2, a._3, a._4))
