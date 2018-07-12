@@ -9,7 +9,7 @@ import com.geo.data.Read._
 import com.geo.data.Transform._
 import com.geo.data.Write._
 
-object App {
+object MapMatchingApp {
 
   def main(args: Array[String]): Unit = {
 
