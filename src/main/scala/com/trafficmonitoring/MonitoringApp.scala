@@ -18,6 +18,8 @@ object MonitoringApp {
     *
     * This app writes a file in /home/pablo/DE/GeoJSON/MonitoringResults.json containing all the data needed
     * to plot a map in geojson.io
+    *
+    * At the moment we set the map data location in the code as well as the location of the geojson results
    */
 
   def main(args: Array[String]): Unit = {
