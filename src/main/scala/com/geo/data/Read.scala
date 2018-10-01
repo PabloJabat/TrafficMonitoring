@@ -2,8 +2,10 @@ package com.geo.data
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.SparkContext
+import org.apache.spark.sql._
 import com.geo.elements._
 import com.geo.data.Transform._
+
 import scala.io.Source
 
 object Read {
@@ -16,29 +18,31 @@ object Read {
 
   }
 
+  def loadStringMapSpark(sc: SparkContext, spark: SparkSession, mapPath: String): DataFrame = {
+
+    //This function loads the way data in string format, both the wayID and the wayData containing the coordinates
+
+    import spark.implicits._
+
+    val mapData = sc.textFile(mapPath)
+
+    mapData.map(_.split("-")).map(a => (a(0),a(1))).toDF("wayID","wayData")
+
+  }
+
   def loadGPSPointsSpark(sc: SparkContext, gpsDataPath: String): RDD[Point] = {
+
+    def pointExtraction(list: List[String]): Point = {
+      //We first put the 4th entry as it is the latitude and we want the LatLon array
+      new Point(list(3).toDouble, list(2).toDouble, list(6).toDouble, list.head + " " + list(1))
+
+    }
 
     val pattern = """([^";]+)""".r
 
     sc.textFile(gpsDataPath)
       .map(line => pattern.findAllIn(line).toList)
       .map(pointExtraction)
-
-  }
-
-  def loadRefDataSpark(sc: SparkContext, refGPSDataPath: String): RDD[(Point, (String, Point))] = {
-
-    sc.textFile(refGPSDataPath)
-      .map(_.split(",").toList)
-      .map(referenceGPSDataExtraction)
-
-  }
-
-  def loadResultsDataSpark(sc: SparkContext, matchedGPSDataPath: String): RDD[(Point, (String, Point))] = {
-
-    sc.textFile(matchedGPSDataPath)
-      .map(_.split(",").toList)
-      .map(matchedGPSDataExtraction)
 
   }
 
@@ -65,47 +69,6 @@ object Read {
     val osmData = Source.fromFile(matchedGPSDataPath).getLines().toList
 
     osmData.map(_.split(",")).map(extractPoints)
-
-  }
-
-
-  private def pointExtraction(list: List[String]): Point = {
-    //We first put the 4th entry as it is the latitude and we want the LatLon array
-    new Point(list(3).toDouble, list(2).toDouble, list(6).toDouble, list.head + " " + list(1))
-
-  }
-
-  private def matchedGPSDataExtraction(list: List[String]): (Point, (String, Point)) = {
-
-    val point = new Point(list(2).toDouble, list(3).toDouble, list(4).toDouble, list(1))
-    val matchedPoint = new Point(list(5).toDouble,list(6).toDouble)
-    val wayID = list.head
-
-    (point, (wayID, matchedPoint))
-
-  }
-
-  private def referenceGPSDataExtraction(list: List[String]): (Point, (String, Point)) = {
-
-    def getPoint(str: String): Point = {
-      val patternQuotes = "([^\"]+)".r
-      val patternLatLon = "([0-9]+.[0-9]+) ([0-9]+.[0-9]+)".r
-
-      patternQuotes.findFirstIn(str).get match {
-        case patternLatLon(lat,lon) => new Point(lat.toDouble,lon.toDouble)
-      }
-    }
-
-    val pattern = "([^{}]+)".r
-
-    val wayID = pattern.findFirstIn(list(9)).get
-    val matchedPoint = getPoint(pattern.findFirstIn(list(11)).get)
-    val orientation = list(7).toDouble
-    val id = list(1) + " " + list(2)
-
-    val point = new Point(list(4).toDouble, list(3).toDouble, orientation, id)
-
-    (point, (wayID, matchedPoint))
 
   }
 

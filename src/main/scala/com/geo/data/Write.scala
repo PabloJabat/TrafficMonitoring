@@ -4,6 +4,8 @@ import java.io._
 import net.liftweb.json.DefaultFormats
 import net.liftweb.json.Serialization.write
 import com.geo.elements._
+import com.geo.data.Transform._
+import org.apache.spark.sql.Row
 
 object Write {
 
@@ -11,7 +13,7 @@ object Write {
   case class Geometry(geometry: Any, properties: Any = Empty(),`type`: String = "Feature")
 
   case class PolygonProperties(stroke: String,`stroke-width`: Int,`stroke-opacity`: Int,fill: String, `fill-opacity`: Int)
-  case class LineStringProperties(stroke: String = "#555555",`stroke-width`: Int = 2,`stroke-opacity`: Int = 1, `osm-id`: String = "")
+  case class LineStringProperties(stroke: String = "#555555",`stroke-width`: Int = 2,`stroke-opacity`: Int = 1, `osm-id`: String = "", traffic: String = "")
   case class MarkerProperties(`marker-color`: String,`marker-size`: String, `marker-symbol`: String = "", `timestamp`: String = "")
 
   case class PointGeoJSON(coordinates: List[Double],`type`: String = "Point")
@@ -38,7 +40,9 @@ object Write {
 
   private def wayToJSON (w: Way, properties: Any = Empty()): String = {
 
-    write(Geometry(WayGeoJSON(w.toListList), LineStringProperties(`osm-id` = w.osmID)))
+    if (properties == Empty)
+      write(Geometry(WayGeoJSON(w.toListList), LineStringProperties(`osm-id` = w.osmID)))
+    else write(Geometry(WayGeoJSON(w.toListList), properties))
 
   }
 
@@ -56,7 +60,7 @@ object Write {
 
   }
 
-  private def writeToFile (pw: PrintWriter, lines: List[String]): Unit = {
+  def writeToFile (pw: PrintWriter, lines: List[String]): Unit = {
 
     pw.println("{\"type\": \"FeatureCollection\" ,\"features\":[")
 
@@ -178,6 +182,19 @@ object Write {
     val matchedPoints = lstPoints.map(p =>  pointToJSON(p._2,"#a71313",p._2.id))
 
     writeToFile(pw, originalPoints ++ matchedPoints)
+
+  }
+
+  def trafficDataToJSON (pw: PrintWriter, trafficData: List[(Int, Long, String)]): Unit = {
+
+    val myProperties = LineStringProperties("#555555",2,1,_:String,_:String)
+
+    val lstWays = trafficData
+      .map{a =>
+        wayToJSON(new Way(lineStringToPointArray(a._3).toList, a._1.toString), myProperties(a._1.toString,a._2.toString))
+      }
+
+    writeToFile(pw, lstWays)
 
   }
 
