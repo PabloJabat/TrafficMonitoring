@@ -11,6 +11,15 @@ import com.geo.data.Write._
 
 object MapMatchingApp {
 
+  /** MapMatchingApp
+    *
+    * args:
+    *
+    * This app takes some input GPS data and road data coming from OpenStreetMaps and carries out the map matching
+    *
+    * At this point we provide the location of the road data and input GPS data inside the code
+    */
+
   def main(args: Array[String]): Unit = {
 
     println("Traffic Monitoring")
@@ -91,8 +100,8 @@ object MapMatchingApp {
 
     matchedData.persist()
 
-    matchedData.map{case (way, p, new_p, _) => (way.osmID, p.id, p.lat, p.lon, p.orientation, new_p.lat, new_p.lon)}
-      .toDF("wayID","pointID","latitude","longitude","orientation","matched latitude","matched longitude")
+    matchedData.map{case (way, p, new_p, _) => (way.osmID, findCarID(p.id), findTimestamp(p.id), p.lat, p.lon, p.orientation, new_p.lat, new_p.lon)}
+      .toDF("wayID","carID","timestamp","latitude","longitude","orientation","matched latitude","matched longitude")
       .coalesce(1).write.csv("/home/pablo/DE/DataSets/testDataSets/results")
 
     matchedData.unpersist()
