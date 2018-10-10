@@ -2,6 +2,9 @@ package com.trafficmonitoring
 
 import java.io.PrintWriter
 
+import better.files._
+import better.files.File._
+
 import com.typesafe.config.ConfigFactory
 
 import org.apache.spark.sql.SparkSession
@@ -132,6 +135,20 @@ object MapMatchingApp {
     //Once we carry out the Map Matching computation we write the results in a csv
 
     matchedData.persist()
+
+    try {
+
+      val file = File.apply(outputPath + "/MMresults")
+
+      file.delete()
+
+      println("Deleted folder containing previous results.")
+
+    } catch {
+
+      case _:java.nio.file.NoSuchFileException => println("No previous results found. No need to delete folder.")
+
+    }
 
     matchedData.map{case (way, p, new_p, _) => (way.osmID, findCarID(p.id), findTimestamp(p.id), p.lat, p.lon, p.orientation, new_p.lat, new_p.lon)}
       .toDF("wayID","carID","timestamp","latitude","longitude","orientation","matched latitude","matched longitude")
