@@ -39,30 +39,33 @@ object MapMatchingApp {
 
     //We load all the parameters needed in the application fromm the configuration file
 
-    val maxLat = ConfigFactory.load().getDouble("boxlimits.maxLat")
+    val applicationConf = ConfigFactory.load("application.conf")
 
-    val minLat = ConfigFactory.load().getDouble("boxlimits.minLat")
+    val mapMatchingConf = ConfigFactory.load("mapmatching.conf")
 
-    val maxLon = ConfigFactory.load().getDouble("boxlimits.maxLon")
+    val maxLat = mapMatchingConf.getDouble("boxlimits.maxLat")
 
-    val minLon = ConfigFactory.load().getDouble("boxlimits.minLon")
+    val minLat = mapMatchingConf.getDouble("boxlimits.minLat")
 
-    val resolution = ConfigFactory.load().getDouble("grid.resolution")
+    val maxLon = mapMatchingConf.getDouble("boxlimits.maxLon")
 
-    val clearance = ConfigFactory.load().getDouble("grid.clearance")
+    val minLon = mapMatchingConf.getDouble("boxlimits.minLon")
 
-    val radius = ConfigFactory.load().getDouble("grid.radius")
+    val resolution = mapMatchingConf.getDouble("grid.resolution")
 
-    val gpsDataPath = ConfigFactory.load().getString("data.gps")
+    val clearance = mapMatchingConf.getDouble("grid.clearance")
 
-    val mapDataPath = ConfigFactory.load().getString("data.map")
+    val radius = mapMatchingConf.getDouble("grid.radius")
 
-    val outputPath = ConfigFactory.load().getString("data.output")
+    val stdev_deltaPhi = mapMatchingConf.getDouble("stdev.deltaPhi")
 
-    val stdev_deltaPhi = ConfigFactory.load().getDouble("stdev.deltaPhi")
+    val stdev_b = mapMatchingConf.getDouble("stdev.b")
 
-    val stdev_b = ConfigFactory.load().getDouble("stdev.b")
+    val gpsDataPath = applicationConf.getString("data.gps")
 
+    val mapDataPath = applicationConf.getString("data.map")
+
+    val outputPath = applicationConf.getString("data.output")
 
     //We first set the region on the map in which we want to perform map matching
 
@@ -149,7 +152,7 @@ object MapMatchingApp {
 
     println("MMResultsRDD.json created")
 
-    println("Map Matching App successfully finished running")
+    println("Map Matching App successfully finished")
 
   }
 
