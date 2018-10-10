@@ -37,9 +37,17 @@ object MapMatchingApp {
     println("|          Map Matching App          |")
     println("======================================")
 
-    //We load all the parameters needed in the application fromm the configuration file
+    //We load all the parameters needed in the application from application.conf
 
     val applicationConf = ConfigFactory.load("application.conf")
+
+    val gpsDataPath = applicationConf.getString("data.gps")
+
+    val mapDataPath = applicationConf.getString("data.map")
+
+    val outputPath = applicationConf.getString("data.output")
+
+    //We load all the parameters needed in the Map Matching from mapmatching.conf
 
     val mapMatchingConf = ConfigFactory.load("mapmatching.conf")
 
@@ -60,12 +68,6 @@ object MapMatchingApp {
     val stdev_deltaPhi = mapMatchingConf.getDouble("stdev.deltaPhi")
 
     val stdev_b = mapMatchingConf.getDouble("stdev.b")
-
-    val gpsDataPath = applicationConf.getString("data.gps")
-
-    val mapDataPath = applicationConf.getString("data.map")
-
-    val outputPath = applicationConf.getString("data.output")
 
     //We first set the region on the map in which we want to perform map matching
 
