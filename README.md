@@ -9,7 +9,7 @@ We have two main folders inside src/main/scala/com:
     - MonitoringApp: Takes the output of MapMatchingApp and outputs a geojson file with all the roads in a color code
     depending on the traffic in each road in a given time frame
     
-    ####MatchPoint
+    #### MatchPoint
     
     In order to make this app work you will first need to download the map from OpenStreetMap. To do that you can use 
     The data must be in .csv format. The following repository provides a simple command to download the
