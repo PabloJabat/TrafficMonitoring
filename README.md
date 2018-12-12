@@ -15,8 +15,8 @@ We have two main folders inside src/main/scala/com:
     The data must be in .csv format. The following repository provides a simple command to download the
     map: 
     
-    Repository: https://github.com/PabloJabat/OSMDataRetriever
-    Commad: `./getMapDataCSV`
+    - Repository: https://github.com/PabloJabat/OSMDataRetriever
+    - Commad: `./getMapDataCSV`
     
     You will need to set the size of the box containing the area of roads that you want to consider in the map matching.
     Make sure that the area contains the point that you want to map match. You will need to set all the parameters of the 

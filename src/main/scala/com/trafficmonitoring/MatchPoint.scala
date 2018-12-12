@@ -1,5 +1,6 @@
 package com.trafficmonitoring
 
+import com.typesafe.config.ConfigFactory
 import java.io.PrintWriter
 import com.geo.elements._
 import com.geo.data.Read._
@@ -11,10 +12,30 @@ object MatchPoint {
 
   def main(args: Array[String]): Unit = {
 
-    val p = new Point(40.6444883333, 22.9351966667, 3.2999999523)
+    val applicationConf = ConfigFactory.load("matchpoint.conf")
+
+    val p_lat = applicationConf.getDouble("point.lat")
+
+    val p_lon = applicationConf.getDouble("point.lon")
+
+    val p_angle = applicationConf.getDouble("point.angle")
+
+    val maxLat = applicationConf.getDouble("grid.area.maxLat")
+
+    val minLat = applicationConf.getDouble("grid.area.minLat")
+
+    val maxLon = applicationConf.getDouble("grid.area.maxLon")
+
+    val minLon = applicationConf.getDouble("grid.area.minLon")
+
+    val cellway_output = applicationConf.getString("output.cellways")
+
+    val mmresult_output = applicationConf.getString("output.mmresult")
+
+    val p = new Point(p_lat, p_lon, p_angle)
 
     //We create the grid that we are going to use
-    val osmBox = BoxLimits(40.65, 40.64, 22.94, 22.93)
+    val osmBox = BoxLimits(maxLat, minLat, maxLon, minLon)
 
     val myGrid = new Grid(osmBox,200)
 
@@ -35,7 +56,7 @@ object MatchPoint {
     //We write to geojson all the ways that will we introduced in the MM algorithm
     val waysToJSON = getIndexedWaysOfIndexes(waysDataIndexed, pointIndexes)
 
-    val pw1 = new PrintWriter("/home/pablo/DE/GeoJSON/CellWays.json")
+    val pw1 = new PrintWriter(cellway_output)
 
     cellsToJSON(pw1, waysToJSON, myGrid)
 
@@ -43,7 +64,7 @@ object MatchPoint {
     val result = naiveBayesClassifierMM(p, waysOfPoint,1,1)
 
     //We write the result to geojson
-    val pw2 = new PrintWriter("/home/pablo/DE/GeoJSON/MMResult.json")
+    val pw2 = new PrintWriter(mmresult_output)
 
     resultsToJSON(pw2, List((p, result._2, waysOfPoint)), myGrid)
 
